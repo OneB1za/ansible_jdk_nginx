@@ -1,0 +1,48 @@
+---
+# tasks file for nginx-setup
+
+- name: Install nginx
+  ansible.builtin.package:
+    name: nginx
+    state: present
+  become: yes
+
+- name: Start and enable Nginx service
+  ansible.builtin.service:
+    name: nginx
+    state: started
+    enabled: yes
+
+- name: Check nginx service started
+  ansible.builtin.command:
+    cmd: systemctl status nginx
+  register: nginx_status
+
+- name: Debug Nginx status
+  debug:
+    msg: "Nginx status: {{ nginx_status.stdout }}"
+
+- name: Create index.html with server IP
+  ansible.builtin.template:
+    src: index.html.j2
+    dest: /var/www/html/index.html
+    owner: www-data
+    group: www-data
+    mode: '0644'
+  become: yes
+
+- name: Ensure /var/www/html directory exists
+  ansible.builtin.file:
+    path: /var/www/html
+    state: directory
+    owner: www-data
+    group: www-data
+    mode: '0755'
+  become: yes
+
+- name: Restart Nginx service
+  ansible.builtin.package:
+    name: nginx
+    state: restarted
+  become: yes
+

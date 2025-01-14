@@ -1,0 +1,6 @@
+---
+# defaults file for jdk_setup
+jdk_version: "17"
+jdk_url: "https://download.java.net/openjdk/jdk17/ri/openjdk-17+35_linux-x64_bin.tar.gz"
+jdk_install_path: "/opt"
+

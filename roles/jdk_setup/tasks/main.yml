@@ -1,0 +1,42 @@
+---
+# Удаляем старую версию JDK с использованием sudo
+- name: Remove old JDK version
+  become: yes
+  ansible.builtin.package:
+    name: openjdk*
+    state: absent
+
+# Удаляем файл, если существует
+- name: Remove existing OpenJDK archive if it exists
+  ansible.builtin.file:
+    path: /tmp/openjdk-17.tar.gz
+    state: absent
+
+# Скачиваем архив OpenJDK 17 (не требует sudo)
+- name: Download OpenJDK {{ jdk_version }}
+  become: yes
+  ansible.builtin.command: # можно также через get_url
+    cmd: wget {{ jdk_url }} -O /tmp/openjdk-{{ jdk_version }}.tar.gz
+  environment:
+    RES_OPTIONS: "attempts:2 timeout:3"
+    DNS_RESOLVERS: "1.1.1.1,8.8.8.8"
+
+
+# Распаковываем архив
+- name: Extract OpenJDK 17
+  become: yes
+  ansible.builtin.unarchive:
+    src: /tmp/openjdk-{{ jdk_version }}.tar.gz
+    dest: "{{ jdk_install_path }}"
+    remote_src: yes
+
+# Настраиваем переменные окружения 
+- name: Configure JAVA_HOME and PATH
+  become: yes
+  ansible.builtin.lineinfile:
+    path: /etc/profile.d/java.sh
+    line: |
+      export JAVA_HOME={{ jdk_install_path }}/jdk-{{ jdk_version }}
+      export PATH=$JAVA_HOME/bin:$PATH
+    create: yes
+    state: present
